@@ -19,9 +19,9 @@ with portfolio-manager-grade risk analytics.
 2. **Mean-Variance Optimization (MVO)** — the *analytical* efficient frontier is solved by
    quadratic programming, isolating the **Global Minimum-Variance** portfolio, the **Tangency
    (Max-Sharpe)** portfolio, and the **Capital Market Line**.
-3. **Risk diagnostics** — a full PM tear-sheet: Sharpe/Sortino/Calmar/Treynor, Beta/Alpha/
-   Information-Ratio vs. a market proxy, up-/down-capture, VaR/CVaR, drawdown duration, equity &
-   underwater curves, and rolling 1-year Sharpe.
+3. **Risk diagnostics, benchmarked vs. the S&P 500** — a full PM tear-sheet: Sharpe/Sortino/
+   Calmar/Treynor, Beta/Alpha/Information-Ratio, up-/down-capture, VaR/CVaR, drawdown duration,
+   normalized growth vs. buy-and-hold S&P 500, and rolling 1-year Sharpe.
 
 ![Efficient Frontier](efficient_frontier.png)
 
@@ -29,32 +29,38 @@ with portfolio-manager-grade risk analytics.
 
 ## Key Results
 
-A full portfolio-manager tear-sheet (in-sample, 2016–2026). Benchmark-relative metrics use an
-equal-weighted index of the 213-name universe as the market proxy.
+A full portfolio-manager tear-sheet (in-sample, 2016–2026), benchmarked against a **buy-and-hold
+S&P 500 (^GSPC)** — which also serves as the market benchmark for Beta / Alpha / Information Ratio
+/ Capture.
 
-| Metric | **Tangency (Max-Sharpe)** | Min-Variance | Equal-Weight *(benchmark)* |
-|---|---:|---:|---:|
-| CAGR | **42.2%** | 10.5% | 17.7% |
-| Annualized volatility | 21.1% | 12.7% | 18.1% |
-| **Sharpe** | **1.57** | 0.51 | 0.75 |
-| Sortino | 2.10 | 0.63 | 0.89 |
-| Calmar | 1.70 | 0.44 | 0.49 |
-| Treynor | 0.34 | 0.11 | 0.14 |
-| **Information ratio** | **1.74** | −0.68 | — |
-| Max drawdown | −24.8% | −23.8% | −36.5% |
-| Max DD duration | 169 d | 485 d | 372 d |
-| VaR 95% / CVaR 95% | −1.9% / −3.0% | −1.1% / −1.8% | −1.6% / −2.7% |
-| Beta (vs mkt) | 0.98 | 0.57 | 1.00 |
-| **Alpha (annual)** | **+19.7%** | −1.4% | 0.0% |
-| Up / Down capture | 1.13 / 0.92 | 0.55 / 0.54 | 1.0 / 1.0 |
-| Skew / Excess kurtosis | −0.07 / 7.3 | −0.66 / 14.9 | −0.54 / 18.2 |
-| Hit rate (% up days) | 56.6% | 53.9% | 56.3% |
+| Metric | **Tangency (Max-Sharpe)** | Min-Variance | Equal-Weight | **S&P 500** |
+|---|---:|---:|---:|---:|
+| **Growth of \$1** | **×33.6** | ×2.7 | ×5.1 | ×3.6 |
+| CAGR | **42.2%** | 10.5% | 17.7% | 13.8% |
+| Annualized volatility | 21.1% | 12.7% | 18.1% | 18.1% |
+| **Sharpe** | **1.57** | 0.50 | 0.75 | 0.56 |
+| Sortino | 2.10 | 0.63 | 0.89 | 0.67 |
+| Calmar | 1.70 | 0.44 | 0.49 | 0.41 |
+| Treynor | 0.33 | 0.12 | 0.14 | 0.10 |
+| **Information ratio** | **2.20** | −0.33 | 0.79 | — |
+| Max drawdown | −24.8% | −23.8% | −36.5% | −33.9% |
+| Max DD duration | 169 d | 485 d | 372 d | 512 d |
+| VaR 95% / CVaR 95% | −1.9% / −3.0% | −1.1% / −1.8% | −1.6% / −2.7% | −1.7% / −2.8% |
+| Beta (vs S&P 500) | 1.01 | 0.55 | 0.98 | 1.00 |
+| **Alpha (annual)** | **+22.8%** | +0.8% | +3.7% | 0.0% |
+| Up / Down capture | 1.17 / 0.93 | 0.52 / 0.48 | 0.98 / 0.94 | 1.0 / 1.0 |
+| Skew / Excess kurtosis | −0.07 / 7.3 | −0.66 / 14.9 | −0.54 / 18.2 | −0.38 / 16.0 |
+| Hit rate (% up days) | 56.6% | 53.9% | 56.3% | 54.9% |
 
 * **Risk-free rate ($R_f$):** 4.38% (10-Year Treasury, `^TNX`, with fallback)
 * The **analytical tangency Sharpe (1.57)** exceeds the **best of 500,000 random portfolios
   (1.38)** — the optimizer provably beats brute-force search.
-* The optimal portfolio earns a higher Sharpe **and** a shallower drawdown than equal-weight,
-  with a **+19.7% annual alpha**, **1.74 information ratio**, and **up-capture > down-capture**.
+* **vs. buy-and-hold S&P 500:** the tangency portfolio turns \$1 into **\$33.6 vs the index's
+  \$3.6** (≈9× the index) with a **+22.8% annual alpha**, **2.20 information ratio**, and
+  **up-capture > down-capture** — at a *shallower* max drawdown (−24.8% vs −33.9%). Even naive
+  equal-weight (×5.1) beats the index; min-variance (×2.7) trades return for the lowest risk.
+
+![Normalized Growth vs S&P 500](growth_vs_sp500.png)
 
 ### Optimal Allocation — Tangency Portfolio
 `LLY 22.3%` · `PWR 12.5%` · `NVDA 12.0%` · `WMT 9.5%` · `PGR 9.1%` · `MU 6.1%` · `AXON 5.5%` ·
@@ -104,8 +110,9 @@ jupyter notebook efficient_frontier.ipynb
 ```
 
 The notebook reads from a local EODHD SQLite database if present; otherwise it falls back to the
-**bundled split-adjusted price panel** (`data/universe_adj_close.csv.gz`), so it runs end-to-end
-out of the box with no database required.
+**bundled split-adjusted price panel** (`data/universe_adj_close.csv.gz`) and the **bundled S&P 500
+series** (`data/sp500.csv.gz`), so it runs end-to-end out of the box with no database or network
+required.
 
 ---
 
@@ -118,6 +125,8 @@ out of the box with no database required.
   names are absent, inflating returns.
 * **Estimation error.** Max-Sharpe weights are sensitive to noise in $\mu$; production use would
   add weight caps or resampled frontiers.
+* **Price-return basis.** Portfolios and the S&P 500 are compared on a price (split-only) basis,
+  excluding dividends, for a like-for-like comparison.
 
 ---
 
@@ -127,7 +136,9 @@ out of the box with no database required.
 efficient_frontier.ipynb          # main analysis notebook
 efficient_frontier.png            # Figure 1 — frontier + Monte Carlo + CML
 risk_performance.png              # Figure 2 — drawdown / equity / VaR / correlations
-rolling_sharpe.png                # Figure 3 — rolling 1-year Sharpe ratio
+growth_vs_sp500.png               # Figure 3 — normalized growth vs buy-and-hold S&P 500
+rolling_sharpe.png                # Figure 4 — rolling 1-year Sharpe ratio
 data/universe_adj_close.csv.gz    # bundled split-adjusted price panel (runs without the DB)
+data/sp500.csv.gz                 # bundled S&P 500 benchmark series
 requirements.txt
 ```
