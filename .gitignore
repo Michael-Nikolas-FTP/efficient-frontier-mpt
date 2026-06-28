@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Large local data (the 2GB source DB is never committed)
+*.db
+*.sqlite
+
+# Working/scratch artifacts
+_results.npz
+_exec_nb.py
+build_frontier.py
+plot_frontier.py
