@@ -12,7 +12,7 @@ This project applies **Modern Portfolio Theory (MPT)** to a real, self-collected
 US equities with complete 10-year daily histories (2016–2026)**, pulled from a personal EODHD
 SQLite database (~2 GB). Instead of a small hand-picked basket, the **entire investable universe**
 is optimized at once using two complementary engines, then the optimal portfolio is stress-tested
-with portfolio-manager-grade risk analytics.
+with portfolio-manager-grade risk analytics **and validated out-of-sample**.
 
 1. **Monte Carlo simulation** — 500,000 random long-only portfolios map the feasible risk/return
    space, shaded by Sharpe ratio.
@@ -22,6 +22,9 @@ with portfolio-manager-grade risk analytics.
 3. **Risk diagnostics, benchmarked vs. the S&P 500** — a full PM tear-sheet: Sharpe/Sortino/
    Calmar/Treynor, Beta/Alpha/Information-Ratio, up-/down-capture, VaR/CVaR, drawdown duration,
    normalized growth vs. buy-and-hold S&P 500, and rolling 1-year Sharpe.
+4. **Out-of-sample validation** — a **10-fold purged cross-validation** that re-estimates the
+   portfolios on each training split and scores them on held-out folds, exposing how much of the
+   in-sample edge is real vs. overfit.
 
 ![Efficient Frontier](efficient_frontier.png)
 
@@ -72,6 +75,39 @@ S&P 500 (^GSPC)** — which also serves as the market benchmark for Beta / Alpha
 
 ---
 
+## Out-of-Sample Validation (10-Fold Purged CV)
+
+Everything above is **in-sample** — the optimizer saw the whole window before being scored on it,
+and max-Sharpe optimization is notorious for overfitting expected returns. To separate skill from
+hindsight, the portfolios are re-estimated under a **10-fold purged cross-validation** (contiguous
+~1-year test folds, 5-day embargo) and scored only on **held-out** data. Equal-Weight and the S&P
+500 estimate nothing, so they are identical in- and out-of-sample (a control).
+
+![Out-of-Sample Purged CV](oos_purged_cv.png)
+
+| Avg across 10 OOS folds | Tangency | Min-Variance | Equal-Weight | **S&P 500** |
+|---|---:|---:|---:|---:|
+| Annualized return | 17.2% | 10.6% | 18.0% | 14.5% |
+| **Sharpe** | 0.72 | 0.55 | **0.96** | 0.73 |
+| Sortino | 1.02 | 0.77 | 1.27 | 0.98 |
+| Max drawdown | −17.7% | −11.7% | −14.3% | −15.3% |
+
+**Pooled OOS path (rebalanced each fold):** Tangency Sharpe **0.58**, alpha **+2.3%** (was +22.8%
+in-sample), grows ×4.4 · Equal-Weight ×5.1 (Sharpe 0.75) · S&P 500 ×3.6 (0.56) · Min-Var ×2.6 (0.45).
+
+### Verdict — is buy-and-hold S&P 500 better than MPT?
+- **The tangency edge largely evaporates out-of-sample:** Sharpe **1.57 → ≈0.6**, alpha
+  **+22.8% → ≈+2%**.
+- **On average it only ties the index:** OOS Sharpe 0.72 vs the S&P's 0.73 — and the **S&P beats it
+  in 3 of 10 folds** (and beats Min-Variance in **7/10**).
+- **Equal-Weight is the real OOS winner** (Sharpe 0.96): the portfolio that estimates *nothing*
+  carries no estimation error. **Min-Variance** is the most defensive — it wins the turbulent 2018
+  and 2022 folds because it needs only the (stable) covariance, never the (noisy) mean.
+- **Takeaway:** the more a portfolio leans on estimated expected returns, the less its in-sample
+  brilliance survives contact with new data.
+
+---
+
 ## Mathematical Framework
 
 Long-only, fully-invested portfolio: $\sum_i w_i = 1,\; w_i \ge 0$.
@@ -118,9 +154,9 @@ required.
 
 ## Caveats (Honest Limitations)
 
-* **In-sample.** Expected returns and covariance are estimated on the same window used to score
-  performance, so absolute Sharpe/return figures are an upper bound. Walk-forward validation and
-  Ledoit-Wolf covariance shrinkage are the natural next steps.
+* **In-sample vs out-of-sample.** The headline tear-sheet is in-sample and overstates performance;
+  the **purged-CV section quantifies it** (tangency Sharpe 1.57 → ≈0.6). Read the two together.
+  Ledoit-Wolf covariance shrinkage and weight caps are the natural next improvements.
 * **Survivorship bias.** The universe is *today's* survivors with full 10-year histories; delisted
   names are absent, inflating returns.
 * **Estimation error.** Max-Sharpe weights are sensitive to noise in $\mu$; production use would
@@ -138,6 +174,7 @@ efficient_frontier.png            # Figure 1 — frontier + Monte Carlo + CML
 risk_performance.png              # Figure 2 — drawdown / equity / VaR / correlations
 growth_vs_sp500.png               # Figure 3 — normalized growth vs buy-and-hold S&P 500
 rolling_sharpe.png                # Figure 4 — rolling 1-year Sharpe ratio
+oos_purged_cv.png                 # Figure 5 — 10-fold purged CV (out-of-sample validation)
 data/universe_adj_close.csv.gz    # bundled split-adjusted price panel (runs without the DB)
 data/sp500.csv.gz                 # bundled S&P 500 benchmark series
 requirements.txt
